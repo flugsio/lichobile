@@ -1,4 +1,4 @@
-var messages = [];
+var moment = require('moment');
 
 var untranslated = {
   human: 'Human',
@@ -21,7 +21,12 @@ var untranslated = {
 
 var defaultCode = 'en';
 
-function loadFile(code, callback) {
+function loadMomentLocale(code, callback) {
+  moment.locale(code);
+  callback();
+}
+
+function loadLocale(code, callback) {
   var i18nLoc = window.cordova ? (window.device.platform === 'Android' ?
     '/android_asset/www/i18n' : 'i18n') : 'i18n';
   m.request({
@@ -29,7 +34,7 @@ function loadFile(code, callback) {
     method: 'GET'
   }).then(function(data) {
     messages = data;
-    callback();
+    loadMomentLocale(code, callback);
   }, function(error) {
     // workaround for iOS: because xhr for local file has a 0 status it will
     // reject the promise, but still have the response object
@@ -39,7 +44,7 @@ function loadFile(code, callback) {
     } else {
       if (code === defaultCode) throw new Error(error);
       console.log(error, 'defaulting to ' + defaultCode);
-      loadFile(defaultCode, callback);
+      loadLocale(defaultCode, callback);
     }
   });
 }
@@ -47,10 +52,10 @@ function loadFile(code, callback) {
 function loadPreferredLanguage(callback) {
   window.navigator.globalization.getPreferredLanguage(
     function(language) {
-      loadFile(language.value.split('-')[0], callback);
+      loadLocale(language.value.split('-')[0], callback);
     },
     function() {
-      loadFile(defaultCode, callback);
+      loadLocale(defaultCode, callback);
     });
 }
 
